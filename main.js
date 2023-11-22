@@ -5,61 +5,61 @@ import {OrbitControls} from 'https://cdn.jsdelivr.net/npm/three@0.118/examples/j
 // import gltf files that have our renders
 import {GLTFLoader} from 'https://cdn.jsdelivr.net/npm/three@0.118.1/examples/jsm/loaders/GLTFLoader.js';
 
-class tronControls {
-    constructor(params) {
-      this._Init(params);
-    }
+// class tronControls {
+//     constructor(params) {
+//       this._Init(params);
+//     }
   
-    _Init(params) {
-      this._params = params;
-      this._move = {
-        forward: false,
-        backward: false,
-        left: false,
-        right: false,
-      };
-      //   this._acceleration = new THREE.Vector3(1, 0.25, 50.0); // if we decide to implement a boost in the future
-      //   this._decceleration = new THREE.Vector3(-0.0005, -0.0001, -5.0); // turn off boost
-      this._velocity = new THREE.Vector3(2, 0, 0);  // tron bike has constant speed; can only turn left or right
+//     _Init(params) {
+//       this._params = params;
+//       this._move = {
+//         forward: false,
+//         backward: false,
+//         left: false,
+//         right: false,
+//       };
+//       //   this._acceleration = new THREE.Vector3(1, 0.25, 50.0); // if we decide to implement a boost in the future
+//       //   this._decceleration = new THREE.Vector3(-0.0005, -0.0001, -5.0); // turn off boost
+//       this._velocity = new THREE.Vector3(2, 0, 0);  // tron bike has constant speed; can only turn left or right
       
-      // Store the reference to controlObject
-        this.controlObject = this._params.target;
+//       // Store the reference to controlObject
+//         this.controlObject = this._params.target;
   
-      document.addEventListener('keydown', (e) => this._onKeyDown(e), false);
-      document.addEventListener('keyup', (e) => this._onKeyUp(e), false);
-    }
+//       document.addEventListener('keydown', (e) => this._onKeyDown(e), false);
+//       document.addEventListener('keyup', (e) => this._onKeyUp(e), false);
+//     }
 
-    _onKeyDown(event) { // make it just turn 90 degrees instead of move
+//     _onKeyDown(event) { // make it just turn 90 degrees instead of move
         
-        switch (event.keyCode) { // store ascii values for desired buttons
-          case 65: // a
-            // this._move.left = true;
-            controlObject.rotateY(Math.PI / 2);
-            break;
-          case 68: // d
-            // this._move.right = true;
-            controlObject.rotateY(-Math.PI / 2);
-            break;
-          case 37: // left // if i want to change controls in the future
-          case 39: // right
-            break;
-        }
-      }
+//         switch (event.keyCode) { // store ascii values for desired buttons
+//           case 65: // a
+//             // this._move.left = true;
+//             controlObject.rotateY(Math.PI / 2);
+//             break;
+//           case 68: // d
+//             // this._move.right = true;
+//             controlObject.rotateY(-Math.PI / 2);
+//             break;
+//           case 37: // left // if i want to change controls in the future
+//           case 39: // right
+//             break;
+//         }
+//       }
     
-    //   _onKeyUp(event) { 
-    //     switch(event.keyCode) {
-    //       case 65: // a
-    //         this._move.left = false;
-    //         break;
-    //       case 68: // d
-    //         this._move.right = false;
-    //         break;
-    //       case 37: // left
-    //       case 39: // right
-    //         break;
-    //     }
-    //   }
-};
+//     //   _onKeyUp(event) { 
+//     //     switch(event.keyCode) {
+//     //       case 65: // a
+//     //         this._move.left = false;
+//     //         break;
+//     //       case 68: // d
+//     //         this._move.right = false;
+//     //         break;
+//     //       case 37: // left
+//     //       case 39: // right
+//     //         break;
+//     //     }
+//     //   }
+// };
 
 class ControlsInput {
     constructor(){
@@ -75,6 +75,7 @@ class FiniteStateMachine{ // possible states and transitions
 
 class BasicWorldDemo {
   constructor() {
+    // this._player = null; // this'll let us reference the player
     this._Initialize();
   }
 
@@ -255,7 +256,12 @@ _LoadModel() {
     // loader.load('/home/kareem/Downloads/tron_moto_sdc__free/scene.gltf', (gltf) => {
     // loader.load('./tron_moto_sdc__free/classic_tron_lightcycle.glb', (gltf) => {
         loader.load('./tron_moto_sdc__free/classic-1982-tron-light-cycle-blue-blend.glb', (gltf) => {
-        console.log(gltf);
+
+        const player = gltf.scene; // set the player object to the render
+        this._player = player;
+
+
+        console.log(gltf); // debugging
 
         // gltf.scene.scale.set(.0025, .0025, .0025); // make sure its big enough
         // gltf.scene.scale.set(25,25,25);
@@ -268,9 +274,31 @@ _LoadModel() {
 
     // downscale
     
-      this._scene.add(gltf.scene);
+      // this._scene.add(gltf.scene);
+      this._scene.add(player);
+      // scene.add(player)
     });
+ 
+
+    window.addEventListener("keydown", (e) => {
+      if(e.key === 'd' || e.key === 'D'){ //|| e.key === "ArrowRight"){
+    
+        console.log('Key pressed:', e.key);
+        // this._player.position.x += 0.2;
+        // player.position.x += 0.1;
+        this._moveRight = true;
+      }
+      if(e.key === 'a' || e.key === 'A'){ //|| e.key === "ArrowRight"){
+    
+        console.log('Key pressed:', e.key);
+        this._moveLeft = true;
+      }
+    });
+    
+
   }
+
+
 
 
 _OnWindowResize() { // handes camera adjustment and rendering when window is resized // shouldn't slow down rendering but i feel like it does
@@ -284,6 +312,23 @@ _RAF() { // render loop that continously renders the scene
     requestAnimationFrame(() => {
       this._threejs.render(this._scene, this._camera);
       this._RAF();
+      if (this._moveRight && this._player) {
+        this._player.rotateY(-Math.PI / 2);
+        this._player.position.z -= 0.1;
+        this._moveRight = false;
+        // prevent it from being held down
+        // this._player.position.x += 0.1;
+        
+    }
+    if (this._moveLeft && this._player) {
+      this._player.rotateY(Math.PI / 2);
+      this._moveLeft = false;
+      // prevent it from being held down
+      // this._player.position.x += 0.1;
+      
+  }
+    this._player.position.z -= 0.1; // always move forward;
+
     });
   }
 }
@@ -291,6 +336,9 @@ _RAF() { // render loop that continously renders the scene
 
 let _APP = null;
 
+
+
 window.addEventListener('DOMContentLoaded', () => {
   _APP = new BasicWorldDemo();
 });
+
