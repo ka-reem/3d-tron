@@ -5,6 +5,73 @@ import {OrbitControls} from 'https://cdn.jsdelivr.net/npm/three@0.118/examples/j
 // import gltf files that have our renders
 import {GLTFLoader} from 'https://cdn.jsdelivr.net/npm/three@0.118.1/examples/jsm/loaders/GLTFLoader.js';
 
+class tronControls {
+    constructor(params) {
+      this._Init(params);
+    }
+  
+    _Init(params) {
+      this._params = params;
+      this._move = {
+        forward: false,
+        backward: false,
+        left: false,
+        right: false,
+      };
+      //   this._acceleration = new THREE.Vector3(1, 0.25, 50.0); // if we decide to implement a boost in the future
+      //   this._decceleration = new THREE.Vector3(-0.0005, -0.0001, -5.0); // turn off boost
+      this._velocity = new THREE.Vector3(2, 0, 0);  // tron bike has constant speed; can only turn left or right
+      
+      // Store the reference to controlObject
+        this.controlObject = this._params.target;
+  
+      document.addEventListener('keydown', (e) => this._onKeyDown(e), false);
+      document.addEventListener('keyup', (e) => this._onKeyUp(e), false);
+    }
+
+    _onKeyDown(event) { // make it just turn 90 degrees instead of move
+        
+        switch (event.keyCode) { // store ascii values for desired buttons
+          case 65: // a
+            // this._move.left = true;
+            controlObject.rotateY(Math.PI / 2);
+            break;
+          case 68: // d
+            // this._move.right = true;
+            controlObject.rotateY(-Math.PI / 2);
+            break;
+          case 37: // left // if i want to change controls in the future
+          case 39: // right
+            break;
+        }
+      }
+    
+    //   _onKeyUp(event) { 
+    //     switch(event.keyCode) {
+    //       case 65: // a
+    //         this._move.left = false;
+    //         break;
+    //       case 68: // d
+    //         this._move.right = false;
+    //         break;
+    //       case 37: // left
+    //       case 39: // right
+    //         break;
+    //     }
+    //   }
+};
+
+class ControlsInput {
+    constructor(){
+
+    }
+}
+
+class FiniteStateMachine{ // possible states and transitions
+    constructor () {
+
+    }
+}
 
 class BasicWorldDemo {
   constructor() {
