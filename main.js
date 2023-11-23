@@ -5,79 +5,11 @@ import {OrbitControls} from 'https://cdn.jsdelivr.net/npm/three@0.118/examples/j
 // import gltf files that have our renders
 import {GLTFLoader} from 'https://cdn.jsdelivr.net/npm/three@0.118.1/examples/jsm/loaders/GLTFLoader.js';
 
-// class tronControls {
-//     constructor(params) {
-//       this._Init(params);
-//     }
-  
-//     _Init(params) {
-//       this._params = params;
-//       this._move = {
-//         forward: false,
-//         backward: false,
-//         left: false,
-//         right: false,
-//       };
-//       //   this._acceleration = new THREE.Vector3(1, 0.25, 50.0); // if we decide to implement a boost in the future
-//       //   this._decceleration = new THREE.Vector3(-0.0005, -0.0001, -5.0); // turn off boost
-//       this._velocity = new THREE.Vector3(2, 0, 0);  // tron bike has constant speed; can only turn left or right
-      
-//       // Store the reference to controlObject
-//         this.controlObject = this._params.target;
-  
-//       document.addEventListener('keydown', (e) => this._onKeyDown(e), false);
-//       document.addEventListener('keyup', (e) => this._onKeyUp(e), false);
-//     }
-
-//     _onKeyDown(event) { // make it just turn 90 degrees instead of move
-        
-//         switch (event.keyCode) { // store ascii values for desired buttons
-//           case 65: // a
-//             // this._move.left = true;
-//             controlObject.rotateY(Math.PI / 2);
-//             break;
-//           case 68: // d
-//             // this._move.right = true;
-//             controlObject.rotateY(-Math.PI / 2);
-//             break;
-//           case 37: // left // if i want to change controls in the future
-//           case 39: // right
-//             break;
-//         }
-//       }
-    
-//     //   _onKeyUp(event) { 
-//     //     switch(event.keyCode) {
-//     //       case 65: // a
-//     //         this._move.left = false;
-//     //         break;
-//     //       case 68: // d
-//     //         this._move.right = false;
-//     //         break;
-//     //       case 37: // left
-//     //       case 39: // right
-//     //         break;
-//     //     }
-//     //   }
-// };
-
-class ControlsInput {
-    constructor(){
-
-    }
-}
-
-class FiniteStateMachine{ // possible states and transitions
-    constructor () {
-
-    }
-}
-
 class BasicWorldDemo {
   constructor() {
-    // this._player = null; // this'll let us reference the player
     this._playerRotation = 0; // keep track of players rotation so its relative to direction its moving 
     this._Initialize();
+    this._JetWall(); // wall that is created behind the player
   }
 
   _Initialize() {
@@ -107,24 +39,25 @@ class BasicWorldDemo {
 
     // lighting setup 
     let light = new THREE.DirectionalLight(0xFFFFFF, 1.0); // directional light created for shadows
-    light.position.set(20, 100, 10);
-    light.target.position.set(0, 0, 0);
-    light.castShadow = true;            
-    light.shadow.bias = -0.001;
-    light.shadow.mapSize.width = 2048;
-    light.shadow.mapSize.height = 2048;
-    light.shadow.camera.near = 0.1;
-    light.shadow.camera.far = 500.0;
-    light.shadow.camera.near = 0.5;
-    light.shadow.camera.far = 500.0;
-    light.shadow.camera.left = 100;
-    light.shadow.camera.right = -100;
-    light.shadow.camera.top = 100;
-    light.shadow.camera.bottom = -100;
+    // decide if we need shadows or not
+    // light.position.set(20, 100, 10);
+    // light.target.position.set(0, 0, 0);
+    // light.castShadow = true;            
+    // light.shadow.bias = -0.001;
+    // light.shadow.mapSize.width = 2048;
+    // light.shadow.mapSize.height = 2048;
+    // light.shadow.camera.near = 0.1;
+    // light.shadow.camera.far = 500.0;
+    // light.shadow.camera.near = 0.5;
+    // light.shadow.camera.far = 500.0;
+    // light.shadow.camera.left = 100;
+    // light.shadow.camera.right = -100;
+    // light.shadow.camera.top = 100;
+    // light.shadow.camera.bottom = -100;
     this._scene.add(light);     
 
     light = new THREE.AmbientLight(0x101010); // make sure everything is lit up
-    this._scene.add(light);
+    // this._scene.add(light);
 
     const controls = new OrbitControls( // lets the user to move the cameras position using arrow or mouse controls
       this._camera, this._threejs.domElement);
@@ -141,7 +74,7 @@ class BasicWorldDemo {
     // this._scene.background = texture;
 
 
-    this._threejs.setClearColor(new THREE.Color(0x090f00)); // background color
+    this._threejs.setClearColor(new THREE.Color(0x090f00)); // background color, dark green
 
 
     const plane = new THREE.Mesh( // render a 3d plane which in this case is our ground
@@ -277,6 +210,7 @@ _LoadModel() {
     
       // this._scene.add(gltf.scene);
       this._scene.add(player);
+      this._JetWall(); // Call _JetWall after loading the player model
       // scene.add(player)
     });
  
@@ -312,6 +246,33 @@ _LoadModel() {
 
   }
 
+  _JetWall() {
+    /*
+      issues to be aware of: the faster the speed the wider the wall needs to be to not create gaps, also might be dependent on users fps
+                              if we include a boost feature, we would need to make a longer wall
+    */
+    let xPos = this._player.position.x // can't use const values as we need to change them without messing with players position
+    let yPos = this._player.position.y 
+    let zPos = this._player.position.z 
+
+    // let x
+
+    // if(this._playerRotation === 90 || this._playerRotation === 270)           
+    
+    // const wallGeometry = new THREE.BoxGeometry(1, 1.95, 0); // (x,y,z)
+    const wallGeometry = new THREE.BoxGeometry(1, 1.95, 0); // (x,y,z)
+
+    const wallMaterial = new THREE.MeshStandardMaterial({ color: 0xffffff }); // Adjust the color as needed
+    const wall = new THREE.Mesh(wallGeometry, wallMaterial);
+
+    wall.position.set(xPos, yPos, zPos);
+
+
+
+    this._scene.add(wall);
+
+  }
+
 
 
 
@@ -324,13 +285,22 @@ _OnWindowResize() { // handes camera adjustment and rendering when window is res
 
 _RAF() { // render loop that continously renders the scene
     requestAnimationFrame(() => {
-      const speed = 0.3;
+      const speed = 0.4;
       this._threejs.render(this._scene, this._camera);
       this._RAF();
+      this._JetWall();
+
+            // Update the wall's position based on the player's movement
+            // if (this._wall && this._player) {
+              // this._wall.position.x = this._player.position.x;
+              // this._wall.position.z = this._player.position.z - 2;
+            // }
 
       switch (this._playerRotation){
         case 0: // initial direction
           this._player.position.z -= speed;
+          // console.log(this._player.position.z);
+        
           break;
         case 90:
           this._player.position.x += speed;
