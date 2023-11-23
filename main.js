@@ -76,6 +76,7 @@ class FiniteStateMachine{ // possible states and transitions
 class BasicWorldDemo {
   constructor() {
     // this._player = null; // this'll let us reference the player
+    this._playerRotation = 0; // keep track of players rotation so its relative to direction its moving 
     this._Initialize();
   }
 
@@ -281,18 +282,31 @@ _LoadModel() {
  
 
     window.addEventListener("keydown", (e) => {
-      if(e.key === 'd' || e.key === 'D'){ //|| e.key === "ArrowRight"){
-    
+      if(e.key === 'd' || e.key === 'D'){ //|| e.key === "ArrowRight"){ // right/left arrow conflicts with orbit controls
         console.log('Key pressed:', e.key);
         // this._player.position.x += 0.2;
         // player.position.x += 0.1;
         this._moveRight = true;
+        this._playerRotation += 90; 
+        this._player.rotateY(-Math.PI / 2);
       }
-      if(e.key === 'a' || e.key === 'A'){ //|| e.key === "ArrowRight"){
+
+      if(e.key === 'a' || e.key === 'A'){ //|| e.key === "ArrowLeft"){
     
-        console.log('Key pressed:', e.key);
+        console.log('Key pressed:', e.key);    
         this._moveLeft = true;
+        this._playerRotation -= 90;
+        this._player.rotateY(Math.PI / 2);
+        
       }
+
+      
+      if(this._playerRotation >= 360) // only done by going right
+        this._playerRotation = 0
+      else if (this._playerRotation < 0) // only done by going left 
+        this._playerRotation = 270; 
+      // console.log(this._playerRotation);
+
     });
     
 
@@ -310,24 +324,54 @@ _OnWindowResize() { // handes camera adjustment and rendering when window is res
 
 _RAF() { // render loop that continously renders the scene
     requestAnimationFrame(() => {
+      const speed = 0.3;
       this._threejs.render(this._scene, this._camera);
       this._RAF();
-      if (this._moveRight && this._player) {
-        this._player.rotateY(-Math.PI / 2);
-        this._player.position.z -= 0.1;
-        this._moveRight = false;
-        // prevent it from being held down
-        // this._player.position.x += 0.1;
+
+      switch (this._playerRotation){
+        case 0: // initial direction
+          this._player.position.z -= speed;
+          break;
+        case 90:
+          this._player.position.x += speed;
+          break;
+        case 180:
+          this._player.position.z += speed;
+          break;
+        case 270:
+          this._player.position.x -= speed;
+          break;
+        default:
+
+      }
+
+      // old movememnt controls 
+    //   if (this._moveRight && this._player) {
+    //     // this._player.rotateY(-Math.PI / 2);
+    //     this._player.rotation.y += Math.PI / 2;
+    //     console.log(this._playerRotation);
+
+    //     // Move the player in the updated direction
+    //     const speed = 0.1;
+    //     this._player.position.x += speed * Math.cos(this._player.rotation.y);
+    //     // this._player.position.z += speed * Math.sin(this._player.rotation.y);
+
+
+
+    //     this._moveRight = false;
+    //     // prevent it from being held down
+    //     // this._player.position.x += 0.1;
         
-    }
-    if (this._moveLeft && this._player) {
-      this._player.rotateY(Math.PI / 2);
-      this._moveLeft = false;
-      // prevent it from being held down
-      // this._player.position.x += 0.1;
+    // }
+    // if (this._moveLeft && this._player) {
+    //   this._player.rotateY(Math.PI / 2);
+    //   this._moveLeft = false;
+    //   // prevent it from being held down
+    //   // this._player.position.x += 0.1;
       
-  }
-    this._player.position.z -= 0.1; // always move forward;
+  // }
+    // const speed = 0.1 // make it easier to implement a boost speed
+    // this._player.position.z -= speed; // always move forward;
 
     });
   }
