@@ -226,13 +226,38 @@ _LoadModel() {
       // scene.add(player)
     });
  
-
+    let speed = 0.3
     window.addEventListener("keydown", (e) => {
       if(e.key === 'd' || e.key === 'D'){ //|| e.key === "ArrowRight"){ // right/left arrow conflicts with orbit controls
         console.log('Key pressed:', e.key);
         this._moveRight = true;
         this._playerRotation += 90; 
         this._player.rotateY(-Math.PI / 2);
+        
+
+        // adjust for wall gap when rotating player
+        switch (this._playerRotation){
+          case 360: // this doesn't get updated from 360 to 0 until after
+            this._player.position.z -= speed + 0.1 ;
+            this._player.position.x += 0.37;
+            console.log("turned")
+            break;
+          case 90:
+           // played around with these values until wall gap was removed
+            this._player.position.x += speed + 0.1; // move forward when turning
+            this._player.position.z += 0.37; // initial position
+            break;
+          case 180:
+            this._player.position.z += speed + 0.1;
+            this._player.position.x -= 0.37;
+            break;
+          case 270:
+            this._player.position.x -= speed + 0.1;
+            this._player.position.z -= 0.37;
+            break;
+          default:
+  
+        }
       }
 
       if(e.key === 'a' || e.key === 'A'){ //|| e.key === "ArrowLeft"){
@@ -241,6 +266,31 @@ _LoadModel() {
         this._moveLeft = true;
         this._playerRotation -= 90;
         this._player.rotateY(Math.PI / 2);
+        
+
+                // adjust for wall gap when rotating player
+                switch (this._playerRotation){
+                  case 0:
+                    this._player.position.z -= speed + 0.1 ;
+                    this._player.position.x -= 0.37;
+                    break;
+                  case 90:
+                   // played around with these values until wall gap was removed
+                    this._player.position.x += speed + 0.1 ; // move forward when turning
+                    this._player.position.z -= 0.37; // initial position
+                    break;
+                  case 180:
+                    this._player.position.z += speed + 0.1;
+                    this._player.position.x += 0.37;
+                    break;
+                  case -90: // this doesn't get updated from -90 to 270 until after
+                    this._player.position.x -= speed + 0.1;
+                    this._player.position.z += 0.37;
+                    break;
+                  default:
+          
+                }
+
         
       }
 
@@ -261,7 +311,7 @@ _LoadModel() {
       issues to be aware of: the faster the speed the wider the wall needs to be to not create gaps, also might be dependent on users fps
                               if we include a boost feature, we would need to make a longer wall
     */
-    let xPos = this._player.position.x // can't use const values as we need to change them without messing with players position
+    let xPos = this._player.position.x  // can't use const values as we need to change them without messing with players position
     let yPos = this._player.position.y 
     let zPos = this._player.position.z 
 
@@ -269,10 +319,11 @@ _LoadModel() {
     let wallWidth; 
     const wallHeight = 1.95
 
+    // wall stays parallel with player
     if(this._playerRotation === 90 || this._playerRotation === 270){   
       wallLength = 0.8
       wallWidth = 0.05   
-    } else{
+    } else{ // 0 || 180
       wallLength = 0.05
       wallWidth = 0.8
     }
