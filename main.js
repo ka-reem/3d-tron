@@ -38,11 +38,14 @@ import {GLTFLoader} from 'https://cdn.jsdelivr.net/npm/three@0.118.1/examples/js
 //   }
 // }
 
+let globalWallsArr = [];
+
 class BasicWorldDemo {
   constructor() {
     this._playerRotation = 0; // keep track of players rotation so its relative to direction its moving 
     this._Initialize();
     this._JetWall(); // wall that is created behind the player
+    // this._wallsArr = []; // store all JetWalls positions
   }
 
   _Initialize() {
@@ -268,14 +271,13 @@ _LoadModel() {
         this._player.rotateY(Math.PI / 2);
         
 
-                // adjust for wall gap when rotating player
+                
                 switch (this._playerRotation){
                   case 0:
                     this._player.position.z -= speed + 0.1 ;
-                    this._player.position.x -= 0.37;
+                    this._player.position.x -= 0.37; // since we're going in the opposite direction we negate this number for all cases
                     break;
                   case 90:
-                   // played around with these values until wall gap was removed
                     this._player.position.x += speed + 0.1 ; // move forward when turning
                     this._player.position.z -= 0.37; // initial position
                     break;
@@ -336,9 +338,15 @@ _LoadModel() {
 
     wall.position.set(xPos, yPos, zPos);
 
+    
+
 
 
     this._scene.add(wall);
+    
+    // store each wall thats created into an array, this'll let us compare players position to all existing walls checking if it collides
+    globalWallsArr.push(wall);
+    // console.log("wall: ", wall);
 
   }
 
@@ -504,7 +512,21 @@ _LoadModel() {
     
     // this._camera.position.lerp(offset, 0.2);
   
+    for (const wall of globalWallsArr) {
+      if (this.checkCollision(this._player, wall)) {
+          // Collision detected, handle the end of the game or take appropriate action
+          console.log("collision detected")
+          return; // Stop checking further walls after the first collision
+      }
   }
+  }
+
+  checkCollision(object, wall) {
+    const playerBox = new THREE.Box3().setFromObject(object);
+    const wallBox = new THREE.Box3().setFromObject(wall);
+
+    return playerBox.intersectsBox(wallBox);
+}
 
 
 
