@@ -202,7 +202,7 @@ class BasicWorldDemo {
 
 _LoadModel() {
     const loader = new GLTFLoader();
-    console.log('hi')
+    // console.log('hi')
     // loader.load('/home/kareem/Downloads/tron_moto_sdc__free/scene.gltf', (gltf) => {
     // loader.load('./tron_moto_sdc__free/classic_tron_lightcycle.glb', (gltf) => {
         loader.load('./tron_moto_sdc__free/classic-1982-tron-light-cycle-blue-blend.glb', (gltf) => {
@@ -211,7 +211,7 @@ _LoadModel() {
         this._player = player;
 
 
-        console.log(gltf); // debugging
+        // console.log(gltf); // debugging
 
         // gltf.scene.scale.set(.0025, .0025, .0025); // make sure its big enough
         // gltf.scene.scale.set(25,25,25);
@@ -234,7 +234,7 @@ _LoadModel() {
     // var playerFrontalPosition; // compare this position with wall  // needs a bigger scoope
     window.addEventListener("keydown", (e) => {
       if(e.key === 'd' || e.key === 'D'){ //|| e.key === "ArrowRight"){ // right/left arrow conflicts with orbit controls
-        console.log('Key pressed:', e.key);
+        // console.log('Key pressed:', e.key);
         this._moveRight = true;
         this._playerRotation += 90; 
         this._player.rotateY(-Math.PI / 2);
@@ -245,7 +245,7 @@ _LoadModel() {
           case 360: // this doesn't get updated from 360 to 0 until after
             this._player.position.z -= speed + 0.1 ;
             this._player.position.x += 0.37;
-            console.log("turned")
+            // console.log("turned")
             break;
           case 90:
            // played around with these values until wall gap was removed
@@ -350,7 +350,7 @@ _LoadModel() {
     globalWallsArr.push(wall);
     // console.log("wall: ", wall);
 
-    // ******** FOR COLLISIONS
+    // ******** FOR COLLISIONS *****************************************************
 
 
     function checkCollision(box1, box2) {
@@ -369,18 +369,7 @@ _LoadModel() {
       return collisionX && collisionY && collisionZ;
   }
 
-    const wallGeometry2 = new THREE.BoxGeometry(wallLength, wallHeight+3, wallWidth); // (x,y,z)
-
-    const wallMaterial2 = new THREE.MeshStandardMaterial({ color: 0xFF10F0}); // pink for debugging
-    const wall2 = new THREE.Mesh(wallGeometry2, wallMaterial2);
-    
-
-    wall2.position.set(xPos, yPos, zPos);
-
-    this._scene.add(wall2); // debugging
-
-
-    // check for collision
+  function wallLoop(wall2){
     for (const wall of globalWallsArr) {
       // const lastWall = wall.position; // not actually lastWall
       if (checkCollision(wall2, wall)) {  
@@ -394,13 +383,87 @@ _LoadModel() {
       // console.log("wall1 pos:",wall.position.x, wall.position.y, wall.position.z)
       // console.log("wall1 pos:", wall) // gives us hash
       // else 
-      //   console.log('no collision')  
+    //   console.log('no collision')  
+    }
   }
 
+
+    // const wallGeometry2 = new THREE.BoxGeometry(wallLength, wallHeight+3, wallWidth); // (x,y,z)
+
+    const wallMaterial2 = new THREE.MeshStandardMaterial({ color: 0xFF10F0}); // pink for debugging
+    // const wall2 = new THREE.Mesh(wallGeometry2, wallMaterial2);
+    
+
+    // wall2.position.set(xPos, yPos, zPos);
+
+    // this._scene.add(wall2); // debugging, shows hitbox/players' collision box
+
+    const hitBoxWidth = 0.35
+    const hitBoxDebuggerHeight = 3;
+    const hitBoxOffSet = 3;
+    const offSetToNotCollideWithSelf = -1;
+
+    // got lazy and messy here
+    switch (this._playerRotation){
+      case 0: // initial direction
+        // this._player.position.z -= speed;
+        // this._playerFrontalPosition = this._player.position.z - 0.3; 
+        // const wallGeometry2 = new THREE.BoxGeometry(wallLength-2, wallHeight+3, wallWidth+1); // (x,y,z)
+        // wall2.position.set(xPos, yPos, zPos);
+        const wallGeometryCase0 = new THREE.BoxGeometry(wallLength + hitBoxWidth , wallHeight + hitBoxDebuggerHeight, wallWidth -1); // (x, y, z)
+        const wall2Case0 = new THREE.Mesh(wallGeometryCase0, wallMaterial2);
+        wall2Case0.position.set(xPos , yPos, zPos -0.45);
+        this._scene.add(wall2Case0); // debugging, shows hitbox/players' collision box
+        // setTimeout(() => {
+        //   this._scene.remove(wall2Case0);
+        // }, 1000 / 10); // adjust denominator based off of fps, right now updates every 10fps
+        wallLoop(wall2Case0);
+        break;
+      case 90:
+        // const wallGeometryCase90 = new THREE.BoxGeometry(wallLength + hitBoxWidth , wallHeight + hitBoxDebuggerHeight, wallWidth ); // (x, y, z)
+        // const wall2Case90 = new THREE.Mesh(wallGeometryCase90, wallMaterial2);
+        // wall2Case90.position.set(xPos , yPos, zPos -2);
+        // this._scene.add(wall2Case90); // debugging, shows hitbox/players' collision box
+        // setTimeout(() => {
+        //   this._scene.remove(wall2Case90);
+        // }, 1000 / 10); // adjust denominator based off of fps, right now updates every 10fps
+        // wallLoop(wall2Case90);
+        // this._player.position.x += speed;
+        break;
+      case 180:
+        // this._player.position.z += speed;
+        break;
+      case 270:
+        // this._player.position.x -= speed;
+        break;
+      default:
+
+    }
+
+    
+
+
+  //   // check for collision
+  //   for (const wall of globalWallsArr) {
+  //     // const lastWall = wall.position; // not actually lastWall
+  //     if (checkCollision(wall2, wall)) {  
+  //         console.log("collision")
+  //         // return; // Stop checking further walls after the first collision
+  //     }
+  //     // console.log("wall2 pos:",wall2.position.x, wall2.position.y, wall2.position.z)
+  //     // console.log("wall1 pos:", lastWall.x, lastWall.y, lastWall.z);
+
+
+  //     // console.log("wall1 pos:",wall.position.x, wall.position.y, wall.position.z)
+  //     // console.log("wall1 pos:", wall) // gives us hash
+  //     // else 
+  //     //   console.log('no collision')  
+  // }
+
   // debugging marker.wall2 = players frontal position(similiar to a hit box but ours is off center/frontal), check if it collides with any walls
-  setTimeout(() => {
-    this._scene.remove(wall2);
-  }, 1000 / 10); // adjust denominator based off of fps, right now updates every 10fps
+  // setTimeout(() => {
+  //   this._scene.remove(wall2);
+  // }, 1000 / 10); // adjust denominator based off of fps, right now updates every 10fps
 
   let fps = 0;
   let lastTime = performance.now();
@@ -512,7 +575,7 @@ _LoadModel() {
   
       //  linear interpolation (lerp), smoother transitions
       this._camera.position.lerp(targetPosition, 0.15);
-      console.log(this._playerRotation)
+      console.log(this._playerRotation) // remmeber to comment
   
 
 
