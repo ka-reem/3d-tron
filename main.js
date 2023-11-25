@@ -388,6 +388,14 @@ _LoadModel() {
   }
 
 
+// this keyword is having trouble binding with passed wall parameter
+//  function removeWallAfterDelay(wall) { // comment out functions content for hitbox debugging
+//     setTimeout(() => {
+//       this._scene.remove(wall);
+//     }, 1000 / 10); // adjust denominator based on fps, updates every 10fps in this case
+//   }
+
+
     // const wallGeometry2 = new THREE.BoxGeometry(wallLength, wallHeight+3, wallWidth); // (x,y,z)
 
     const wallMaterial2 = new THREE.MeshStandardMaterial({ color: 0xFF10F0}); // pink for debugging
@@ -402,6 +410,7 @@ _LoadModel() {
     const hitBoxDebuggerHeight = 3;
     const hitBoxOffSet = 3;
     const offSetToNotCollideWithSelf = -1;
+    let debugShowAllHitBoxes = true;
 
     // got lazy and messy here
     switch (this._playerRotation){
@@ -410,35 +419,53 @@ _LoadModel() {
         // this._playerFrontalPosition = this._player.position.z - 0.3; 
         // const wallGeometry2 = new THREE.BoxGeometry(wallLength-2, wallHeight+3, wallWidth+1); // (x,y,z)
         // wall2.position.set(xPos, yPos, zPos);
-        const wallGeometryCase0 = new THREE.BoxGeometry(wallLength + hitBoxWidth , wallHeight + hitBoxDebuggerHeight, wallWidth -1); // (x, y, z)
+        const wallGeometryCase0 = new THREE.BoxGeometry(wallLength + hitBoxWidth -0.2 , wallHeight + hitBoxDebuggerHeight, wallWidth -1); // (x, y, z)
         const wall2Case0 = new THREE.Mesh(wallGeometryCase0, wallMaterial2);
-        wall2Case0.position.set(xPos , yPos, zPos -0.45);
+        wall2Case0.position.set(xPos , yPos, zPos - 0.45 - .6); // -0.45 will place the hitbox in a spot where it won't collide with the wall in front of it but its also too far behind that it collides with the wall thats being created, assuming this is due to fps issues
         this._scene.add(wall2Case0); // debugging, shows hitbox/players' collision box
-        // setTimeout(() => {
-        //   this._scene.remove(wall2Case0);
-        // }, 1000 / 10); // adjust denominator based off of fps, right now updates every 10fps
         wallLoop(wall2Case0);
+        if (!debugShowAllHitBoxes)
+          setTimeout(() => { // remove the wall after we check if its colliding or not
+            this._scene.remove(wall2Case0);
+          }, 1000 / 10); // adjust denominator based off of fps, right now updates every 10fps
         break;
       case 90:
-        // const wallGeometryCase90 = new THREE.BoxGeometry(wallLength + hitBoxWidth , wallHeight + hitBoxDebuggerHeight, wallWidth ); // (x, y, z)
-        // const wall2Case90 = new THREE.Mesh(wallGeometryCase90, wallMaterial2);
-        // wall2Case90.position.set(xPos , yPos, zPos -2);
-        // this._scene.add(wall2Case90); // debugging, shows hitbox/players' collision box
-        // setTimeout(() => {
-        //   this._scene.remove(wall2Case90);
-        // }, 1000 / 10); // adjust denominator based off of fps, right now updates every 10fps
-        // wallLoop(wall2Case90);
-        // this._player.position.x += speed;
+        const wallGeometryCase90 = new THREE.BoxGeometry(wallLength  -1 , wallHeight + hitBoxDebuggerHeight, wallWidth + hitBoxWidth); // (x, y, z)
+        const wall2Case90 = new THREE.Mesh(wallGeometryCase90, wallMaterial2);
+        wall2Case90.position.set(xPos  + 0.45 + .6, yPos, zPos);
+        this._scene.add(wall2Case90); // debugging, shows hitbox/players' collision box
+        wallLoop(wall2Case90);
+        if (!debugShowAllHitBoxes)
+          setTimeout(() => { // remove the wall after we check if its colliding or not
+            this._scene.remove(wall2Case90);
+          }, 1000 / 10); // adjust denominator based off of fps, right now updates every 10fps
         break;
       case 180:
-        // this._player.position.z += speed;
+        const wallGeometryCase180 = new THREE.BoxGeometry(wallLength + hitBoxWidth , wallHeight + hitBoxDebuggerHeight, wallWidth -1); // (x, y, z)
+        const wall2Case180 = new THREE.Mesh(wallGeometryCase180, wallMaterial2);
+        wall2Case180.position.set(xPos , yPos, zPos + 0.45 + .6);
+        this._scene.add(wall2Case180); // debugging, shows hitbox/players' collision box
+        wallLoop(wall2Case180);
+        if (!debugShowAllHitBoxes)
+          setTimeout(() => { // remove the wall after we check if its colliding or not
+            this._scene.remove(wall2Case180);
+          }, 1000 / 10); // adjust denominator based off of fps, right now updates every 10fps
         break;
       case 270:
-        // this._player.position.x -= speed;
+        const wallGeometryCase270 = new THREE.BoxGeometry(wallLength  -1 , wallHeight + hitBoxDebuggerHeight, wallWidth + hitBoxWidth); // (x, y, z)
+        const wall2Case270 = new THREE.Mesh(wallGeometryCase270, wallMaterial2);
+        wall2Case270.position.set(xPos  - 0.45 - .6, yPos, zPos);
+        this._scene.add(wall2Case270); // debugging, shows hitbox/players' collision box
+        wallLoop(wall2Case270);
+        if (!debugShowAllHitBoxes)
+          setTimeout(() => { // remove the wall after we check if its colliding or not
+            this._scene.remove(wall2Case270);
+          }, 1000 / 10); // adjust denominator based off of fps, right now updates every 10fps
         break;
       default:
 
     }
+    
 
     
 
@@ -789,4 +816,3 @@ let _APP = null;
 window.addEventListener('DOMContentLoaded', () => {
   _APP = new BasicWorldDemo();
 });
-
