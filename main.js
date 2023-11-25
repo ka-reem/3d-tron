@@ -1,7 +1,7 @@
 // importing three.js library
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.118/build/three.module.js'; 
-// lets the camera move around
-import {OrbitControls} from 'https://cdn.jsdelivr.net/npm/three@0.118/examples/jsm/controls/OrbitControls.js'; 
+// using third person camera that follows player around instead // lets the camera move around via mouse/keyboard
+// import {OrbitControls} from 'https://cdn.jsdelivr.net/npm/three@0.118/examples/jsm/controls/OrbitControls.js'; 
 // import gltf files that have our renders
 import {GLTFLoader} from 'https://cdn.jsdelivr.net/npm/three@0.118.1/examples/jsm/loaders/GLTFLoader.js';
 
@@ -45,6 +45,7 @@ class BasicWorldDemo {
     this._playerRotation = 0; // keep track of players rotation so its relative to direction its moving 
     this._Initialize();
     this._JetWall(); // wall that is created behind the player
+    this._playerFrontalPosition = 0; // compare this position with wall
     // this._wallsArr = []; // store all JetWalls positions
   }
 
@@ -196,7 +197,7 @@ class BasicWorldDemo {
     // this._scene.add(box);
     this._LoadModel();
     this._RAF();
-}
+} // end of main class
 
 
 _LoadModel() {
@@ -230,6 +231,7 @@ _LoadModel() {
     });
  
     let speed = 0.3
+    // var playerFrontalPosition; // compare this position with wall  // needs a bigger scoope
     window.addEventListener("keydown", (e) => {
       if(e.key === 'd' || e.key === 'D'){ //|| e.key === "ArrowRight"){ // right/left arrow conflicts with orbit controls
         console.log('Key pressed:', e.key);
@@ -348,6 +350,91 @@ _LoadModel() {
     globalWallsArr.push(wall);
     // console.log("wall: ", wall);
 
+    // ******** FOR COLLISIONS
+
+
+    function checkCollision(box1, box2) {
+      // Extract position and dimensions of each box
+      const pos1 = box1.position.clone();
+      const dims1 = new THREE.Vector3().copy(box1.scale).multiplyScalar(0.5);
+
+      const pos2 = box2.position.clone();
+      const dims2 = new THREE.Vector3().copy(box2.scale).multiplyScalar(0.5);
+
+      // Check for collision
+      const collisionX = Math.abs(pos1.x - pos2.x) < (dims1.x + dims2.x);
+      const collisionY = Math.abs(pos1.y - pos2.y) < (dims1.y + dims2.y);
+      const collisionZ = Math.abs(pos1.z - pos2.z) < (dims1.z + dims2.z);
+
+      return collisionX && collisionY && collisionZ;
+  }
+
+    const wallGeometry2 = new THREE.BoxGeometry(wallLength, wallHeight+3, wallWidth); // (x,y,z)
+
+    const wallMaterial2 = new THREE.MeshStandardMaterial({ color: 0xFF10F0}); // pink for debugging
+    const wall2 = new THREE.Mesh(wallGeometry2, wallMaterial2);
+    
+
+    wall2.position.set(xPos, yPos, zPos);
+
+    this._scene.add(wall2); // debugging
+
+
+    // check for collision
+    for (const wall of globalWallsArr) {
+      // const lastWall = wall.position; // not actually lastWall
+      if (checkCollision(wall2, wall)) {  
+          console.log("collision")
+          // return; // Stop checking further walls after the first collision
+      }
+      // console.log("wall2 pos:",wall2.position.x, wall2.position.y, wall2.position.z)
+      // console.log("wall1 pos:", lastWall.x, lastWall.y, lastWall.z);
+
+
+      // console.log("wall1 pos:",wall.position.x, wall.position.y, wall.position.z)
+      // console.log("wall1 pos:", wall) // gives us hash
+      // else 
+      //   console.log('no collision')  
+  }
+
+  // debugging marker.wall2 = players frontal position(similiar to a hit box but ours is off center/frontal), check if it collides with any walls
+  setTimeout(() => {
+    this._scene.remove(wall2);
+  }, 1000 / 10); // adjust denominator based off of fps, right now updates every 10fps
+
+  let fps = 0;
+  let lastTime = performance.now();
+  
+  // Create a div element for displaying FPS
+  const fpsDisplay = document.createElement("div");
+  fpsDisplay.style.position = "absolute";
+  fpsDisplay.style.top = "10px";
+  fpsDisplay.style.left = "10px";
+  fpsDisplay.style.color = "pink";
+  fpsDisplay.style.zIndex = "9999";
+  document.body.appendChild(fpsDisplay);
+  
+  function updateFPS() {
+    const currentTime = performance.now();
+    const elapsed = currentTime - lastTime;
+    lastTime = currentTime;
+  
+    fps = 1000 / elapsed;
+  
+    // elapsed will sometimes = 0, outputting infinity 
+    if(elapsed != 0)
+      fpsDisplay.textContent = "FPS: " + fps.toFixed(2);
+  
+    // Call the next frame
+    
+    requestAnimationFrame(updateFPS);
+  }
+
+  if(1 === Math.floor(Math.random() * 100) + 1)// works but not the way its supposed to
+    updateFPS();
+
+
+
   }
 
   _CameraPosition(){
@@ -424,7 +511,7 @@ _LoadModel() {
       }
   
       //  linear interpolation (lerp), smoother transitions
-      this._camera.position.lerp(targetPosition, 0.1);
+      this._camera.position.lerp(targetPosition, 0.15);
       console.log(this._playerRotation)
   
 
@@ -512,21 +599,36 @@ _LoadModel() {
     
     // this._camera.position.lerp(offset, 0.2);
   
-    for (const wall of globalWallsArr) {
-      if (this.checkCollision(this._player, wall)) {
-          // Collision detected, handle the end of the game or take appropriate action
-          console.log("collision detected")
-          return; // Stop checking further walls after the first collision
-      }
-  }
+    // commented until trying jetwall solution
+  //   for (const wall of globalWallsArr) {
+  //     // if (this.checkCollision(this._player, wall)) {
+  //       if(this.checkCollision(this._playerFrontalPosition, wall)) {
+  //         // Collision detected, handle the end of the game or take appropriate action
+  //         console.log("collision detected")
+  //         return; // Stop checking further walls after the first collision
+  //     }
+  // }
   }
 
-  checkCollision(object, wall) {
-    const playerBox = new THREE.Box3().setFromObject(object);
-    const wallBox = new THREE.Box3().setFromObject(wall);
+//   checkCollision(object, wall) {
+//     // const playerBox = new THREE.Box3().setFromObject(object);
+//     // const wallBox = new THREE.Box3().setFromObject(wall);
 
-    return playerBox.intersectsBox(wallBox);
-}
+//     // return playerBox.intersectsBox(wallBox);
+//     const playerBox = new THREE.Box3(
+//       // new THREE.Vector3(this._playerFrontalPosition - 0.1, 0, -0.1).applyAxisAngle(new THREE.Vector3(0, 1, 0), this._playerRotation),
+//       // new THREE.Vector3(this._playerFrontalPosition + 0.1, 2, 0.1).applyAxisAngle(new THREE.Vector3(0, 1, 0), this._playerRotation)
+//     );
+//     const wallBox = new THREE.Box3().setFromObject(wall);
+  
+//     // return playerBox.intersectsBox(wallBox);
+
+//     if (playerBox.intersectsBox(wallBox))
+//       console.log("COLLISION")
+
+    
+// } // end of main class
+
 
 
 
@@ -553,9 +655,23 @@ _RAF() { // render loop that continously renders the scene
 
       // this._thirdPersonCamera.update(); // Call the update method of your third-person camera.
 
+      /*
+        wall.position.set(xPos, yPos, zPos); // declared as box geometry 
+        * create a boxGeometry for the front position of the player, then compare that with all walls
+        or just push every x,y,z pos indivually in arr
+
+        new plan: use jetWall but make a new invsible wall or boxGeometry that covers the front 1/3 of the tron bike, also make it wider
+                  this new jet wall will always update to the current wall and it'll compare if this new wall is colliding with anyjetWalls
+                  this way everything can hopefully be done inside of the jetWall method
+
+      */
+
       switch (this._playerRotation){
         case 0: // initial direction
           this._player.position.z -= speed;
+          // this._playerFrontalPosition = this._player.position.z - 0.3; 
+          
+          // console.log('pos:'+this._playerFrontalPosition)
           break;
         case 90:
           this._player.position.x += speed;
