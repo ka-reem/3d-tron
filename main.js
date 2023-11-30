@@ -1,3 +1,9 @@
+/*
+ * Name:   Kareem Amin
+ * SID:    922543151
+ * Github: ka-reem
+ */
+
 // importing three.js library
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.118/build/three.module.js'; 
 // using third person camera that follows player around instead // lets the camera move around via mouse/keyboard
