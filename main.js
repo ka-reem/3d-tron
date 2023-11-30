@@ -78,7 +78,6 @@ class BasicWorldDemo {
 
     // lighting setup 
     let light = new THREE.DirectionalLight(0xFFFFFF, 1.0); // directional light created for shadows
-    // decide if we need shadows or not
     light.position.set(20, 100, 10);
     light.target.position.set(0, 0, 0);
     light.castShadow = true;            
@@ -230,11 +229,12 @@ _LoadModel() {
       // scene.add(player)
     });
  
-    let speed = 0.3
+    const speed = 0.3 // const just b/c faster speeds will create gaps in wall, meaning also no boost implemented
     // var playerFrontalPosition; // compare this position with wall  // needs a bigger scoope
     window.addEventListener("keydown", (e) => {
-      if(e.key === 'd' || e.key === 'D'){ //|| e.key === "ArrowRight"){ // right/left arrow conflicts with orbit controls
+      if(e.key === 'd' || e.key === 'D' || e.key === "ArrowRight"){ // resolved: right/left arrow conflicts with orbit controls
         // console.log('Key pressed:', e.key);
+        console.log(this._playerRotation) 
         this._moveRight = true;
         this._playerRotation += 90; 
         this._player.rotateY(-Math.PI / 2);
@@ -265,8 +265,8 @@ _LoadModel() {
         }
       }
 
-      if(e.key === 'a' || e.key === 'A'){ //|| e.key === "ArrowLeft"){
-    
+      if(e.key === 'a' || e.key === 'A' || e.key === "ArrowLeft"){
+        console.log(this._playerRotation) 
         console.log('Key pressed:', e.key);    
         this._moveLeft = true;
         this._playerRotation -= 90;
@@ -274,26 +274,26 @@ _LoadModel() {
         
 
                 
-                switch (this._playerRotation){
-                  case 0:
-                    this._player.position.z -= speed + 0.1 ;
-                    this._player.position.x -= 0.37; // since we're going in the opposite direction we negate this number for all cases
-                    break;
-                  case 90:
-                    this._player.position.x += speed + 0.1 ; // move forward when turning
-                    this._player.position.z -= 0.37; // initial position
-                    break;
-                  case 180:
-                    this._player.position.z += speed + 0.1;
-                    this._player.position.x += 0.37;
-                    break;
-                  case -90: // this doesn't get updated from -90 to 270 until after
-                    this._player.position.x -= speed + 0.1;
-                    this._player.position.z += 0.37;
-                    break;
-                  default:
-          
-                }
+        switch (this._playerRotation){
+          case 0:
+            this._player.position.z -= speed + 0.1 ;
+            this._player.position.x -= 0.37; // since we're going in the opposite direction we negate this number for all cases
+            break;
+          case 90:
+            this._player.position.x += speed + 0.1 ; // move forward when turning
+            this._player.position.z -= 0.37; // initial position
+            break;
+          case 180:
+            this._player.position.z += speed + 0.1;
+            this._player.position.x += 0.37;
+            break;
+          case -90: // this doesn't get updated from -90 to 270 until after
+            this._player.position.x -= speed + 0.1;
+            this._player.position.z += 0.37;
+            break;
+          default:
+  
+        }
 
         
       }
@@ -313,7 +313,8 @@ _LoadModel() {
   _JetWall() {
     /*
       issues to be aware of: the faster the speed the wider the wall needs to be to not create gaps, also might be dependent on users fps
-                              if we include a boost feature, we would need to make a longer wall
+                              if we include a boost feature, we would need to make a longer wall, maybe pass in a default boolean parameters
+                              and if set to true create longer walls this way we avoid unnecessary added lag when we don't need it
     */
     let xPos = this._player.position.x  // can't use const values as we need to change them without messing with players position
     let yPos = this._player.position.y 
@@ -355,25 +356,37 @@ _LoadModel() {
 
     function checkCollision(box1, box2) {
       // Extract position and dimensions of each box
-      const pos1 = box1.position.clone();
-      const dims1 = new THREE.Vector3().copy(box1.scale).multiplyScalar(0.5);
+      // box1 = player collision box
+      // box2 = wall                                                          // if players fps is too low can the go through walls being undetected?
+      const pos1 = box1.position.clone();                                     // maybe i should scale down the walls when they're created
+      const dims1 = new THREE.Vector3().copy(box1.scale).multiplyScalar(0.1); // bad solution but this makes the players hitbox smaller and gets rid of non-existent collisions I had earlier
 
       const pos2 = box2.position.clone();
-      const dims2 = new THREE.Vector3().copy(box2.scale).multiplyScalar(0.5);
+      const dims2 = new THREE.Vector3().copy(box2.scale).multiplyScalar(0.3); // anything below 0.3 has issues detecting collision
 
-      // Check for collision
+      // check for collision
       const collisionX = Math.abs(pos1.x - pos2.x) < (dims1.x + dims2.x);
-      const collisionY = Math.abs(pos1.y - pos2.y) < (dims1.y + dims2.y);
       const collisionZ = Math.abs(pos1.z - pos2.z) < (dims1.z + dims2.z);
 
-      return collisionX && collisionY && collisionZ;
+      // out of bounds collision // bounds for reference: new THREE.PlaneGeometry(100, 100, 10, 10), // 50 in each direction(+/-)
+      if(Math.abs(pos1.x) > 50 || Math.abs(pos1.z) > 50){
+        console.log("out of bounds")
+        return true;
+    }
+    // console.log(pos1.x)
+
+      
+      //
+      return collisionX && collisionZ;
   }
+
 
   function wallLoop(wall2){
     for (const wall of globalWallsArr) {
       // const lastWall = wall.position; // not actually lastWall
       if (checkCollision(wall2, wall)) {  
           console.log("collision")
+          endGame();
           // return; // Stop checking further walls after the first collision
       }
       // console.log("wall2 pos:",wall2.position.x, wall2.position.y, wall2.position.z)
@@ -387,6 +400,16 @@ _LoadModel() {
     }
   }
 
+  function endGame(){
+    // alert("Game Over!");
+    // return;
+    if (confirm("Game Over!\n\nDo you want to restart?")) 
+      // Reload the page to restart the game
+      location.reload();
+
+
+  }
+
 
 // this keyword is having trouble binding with passed wall parameter
 //  function removeWallAfterDelay(wall) { // comment out functions content for hitbox debugging
@@ -398,7 +421,11 @@ _LoadModel() {
 
     // const wallGeometry2 = new THREE.BoxGeometry(wallLength, wallHeight+3, wallWidth); // (x,y,z)
 
-    const wallMaterial2 = new THREE.MeshStandardMaterial({ color: 0xFF10F0}); // pink for debugging
+    const wallMaterial2 = new THREE.MeshStandardMaterial({ 
+      color: 0xFF10F0, // pink for debugging
+      transparent: true, // set to false for debugging collision hit box
+      opacity: 0,
+    });
     // const wall2 = new THREE.Mesh(wallGeometry2, wallMaterial2);
     
 
@@ -408,9 +435,9 @@ _LoadModel() {
 
     const hitBoxWidth = 0.35
     const hitBoxDebuggerHeight = 3;
-    const hitBoxOffSet = 3;
-    const offSetToNotCollideWithSelf = -1;
-    let debugShowAllHitBoxes = true;
+    // const hitBoxOffSet = 3;
+    // const offSetToNotCollideWithSelf = -1;
+    let debugShowAllHitBoxes = false;
 
     // got lazy and messy here
     switch (this._playerRotation){
@@ -433,12 +460,12 @@ _LoadModel() {
         const wallGeometryCase90 = new THREE.BoxGeometry(wallLength  -1 , wallHeight + hitBoxDebuggerHeight, wallWidth + hitBoxWidth); // (x, y, z)
         const wall2Case90 = new THREE.Mesh(wallGeometryCase90, wallMaterial2);
         wall2Case90.position.set(xPos  + 0.45 + .6, yPos, zPos);
-        this._scene.add(wall2Case90); // debugging, shows hitbox/players' collision box
+        this._scene.add(wall2Case90); 
         wallLoop(wall2Case90);
         if (!debugShowAllHitBoxes)
-          setTimeout(() => { // remove the wall after we check if its colliding or not
+          setTimeout(() => { 
             this._scene.remove(wall2Case90);
-          }, 1000 / 10); // adjust denominator based off of fps, right now updates every 10fps
+          }, 1000 / 10); 
         break;
       case 180:
         const wallGeometryCase180 = new THREE.BoxGeometry(wallLength + hitBoxWidth , wallHeight + hitBoxDebuggerHeight, wallWidth -1); // (x, y, z)
@@ -447,9 +474,9 @@ _LoadModel() {
         this._scene.add(wall2Case180); // debugging, shows hitbox/players' collision box
         wallLoop(wall2Case180);
         if (!debugShowAllHitBoxes)
-          setTimeout(() => { // remove the wall after we check if its colliding or not
+          setTimeout(() => { 
             this._scene.remove(wall2Case180);
-          }, 1000 / 10); // adjust denominator based off of fps, right now updates every 10fps
+          }, 1000 / 10); 
         break;
       case 270:
         const wallGeometryCase270 = new THREE.BoxGeometry(wallLength  -1 , wallHeight + hitBoxDebuggerHeight, wallWidth + hitBoxWidth); // (x, y, z)
@@ -460,7 +487,7 @@ _LoadModel() {
         if (!debugShowAllHitBoxes)
           setTimeout(() => { // remove the wall after we check if its colliding or not
             this._scene.remove(wall2Case270);
-          }, 1000 / 10); // adjust denominator based off of fps, right now updates every 10fps
+          }, 1000 / 10); 
         break;
       default:
 
@@ -554,31 +581,39 @@ _LoadModel() {
 
     // }
 
+    // this._camera.rotation.y = THREE.MathUtils.lerp(this._camera.rotation.y*-1, 0, 0.1) // something like this can be the camera shake when you boost if we implement a boost
     /****************/
 
       const height = 7.5;
       const distanceFromPlayer = 17;
+
+
   
       let targetRotation = 0;
   
       switch (this._playerRotation) {
           case 0:
+
               targetRotation = 0;
               break;
           case 90:
-              targetRotation = -Math.PI / 2;
+              targetRotation = -Math.PI / 2; 
               break;
-          case 180:
-              targetRotation = -Math.PI;
+          case 180: // this needs to change from negative to positive depending if you're turning from a 90 deg angle into a 180 or 270 into a 180. the only problem is that if the player goes into 270 -> 180 -> 90, then the camera will rotate 360 deg again as its going from negative to positive 
+              targetRotation = -Math.PI;// -math.pi will do 420 turn between 270 & 180, +math.pi will do samething between 90 & 180. i think lerp function isn't working because to assimilate a positive direction with a negative, it has to turn in the opposing direction
               break;
           case 270:
               targetRotation = Math.PI / 2;
               break;
           default:
-              targetRotation = 200;
+              // targetRotation = 200;
       }
+
+      /*
+
+      */
   
-      // linear interpolation (lerp), smoother transitions
+      // linear interpolation (lerp), smoother transitio
       this._camera.rotation.y = THREE.MathUtils.lerp(this._camera.rotation.y, targetRotation, 0.1);
   
       const targetPosition = new THREE.Vector3();
@@ -602,7 +637,7 @@ _LoadModel() {
   
       //  linear interpolation (lerp), smoother transitions
       this._camera.position.lerp(targetPosition, 0.15);
-      console.log(this._playerRotation) // remmeber to comment
+      // console.log(this._playerRotation) // remmeber to comment
   
 
 
