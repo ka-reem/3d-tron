@@ -40,7 +40,9 @@ import {GLTFLoader} from 'https://cdn.jsdelivr.net/npm/three@0.118.1/examples/js
 // }
 
 let globalWallsArr = [];
-const mapSize = 1000;
+const mapSize = 500;
+let isGameOver = false;
+
 
 class BasicWorldDemo {
   constructor() {
@@ -313,7 +315,7 @@ _LoadModel() {
 
   }
 
-  _JetWall() {
+  _JetWall() { 
     /*
       issues to be aware of: the faster the speed the wider the wall needs to be to not create gaps, also might be dependent on users fps
                               if we include a boost feature, we would need to make a longer wall, maybe pass in a default boolean parameters
@@ -366,21 +368,23 @@ _LoadModel() {
 
       const pos2 = box2.position.clone();
       const dims2 = new THREE.Vector3().copy(box2.scale).multiplyScalar(0.3); // anything below 0.3 has issues detecting collision
-
+      
       // check for collision
       const collisionX = Math.abs(pos1.x - pos2.x) < (dims1.x + dims2.x);
       const collisionZ = Math.abs(pos1.z - pos2.z) < (dims1.z + dims2.z);
 
-      // out of bounds collision // bounds for reference: new THREE.PlaneGeometry(100, 100, 10, 10), // 50 in each direction(+/-)
-      if(Math.abs(pos1.x) > mapSize / 2 || Math.abs(pos1.z) > mapSize / 2){ // previously 50
-        console.log("out of bounds")
-        return true;
-    }
-    // console.log(pos1.x)
+      if(!isGameOver){ // fixes issue where it'll check for collision before restarting game causing it get stuck
+        // out of bounds collision // bounds for reference: new THREE.PlaneGeometry(100, 100, 10, 10), // 50 in each direction(+/-)
+        if(Math.abs(pos1.x) > mapSize / 2 || Math.abs(pos1.z) > mapSize / 2 ){ // mapSize was previously 50
+          console.log("out of bounds")
+          return true;
+        }
+      // console.log(pos1.x)
 
-      
-      //
-      return collisionX && collisionZ;
+        
+        //
+        return collisionX && collisionZ;
+     }
   }
 
 
@@ -406,6 +410,8 @@ _LoadModel() {
   function endGame(){
     // alert("Game Over!");
     // return;
+    // doesnt work yet:
+    isGameOver = true; // fix issue with game checking out of bounds or collision before reloading the webpage causing infinitly stuck
     if (confirm("Game Over!\n\nDo you want to restart?")) 
       // Reload the page to restart the game
       location.reload();
@@ -546,6 +552,7 @@ _LoadModel() {
       fpsDisplay.textContent = "FPS: " + fps.toFixed(2);
   
     // Call the next frame
+    console.log("running");
     
     requestAnimationFrame(updateFPS);
   }
@@ -774,6 +781,7 @@ _RAF() { // render loop that continously renders the scene
       this._threejs.render(this._scene, this._camera);
       this._RAF();
       this._JetWall();
+
       
       this._CameraPosition();
 

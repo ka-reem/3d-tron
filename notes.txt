@@ -1,0 +1,3 @@
+change to frame dependent movement so that that player doesnt move slower during fps drops
+figure out why there is a severe fps drops
+fix player camera at 270º
