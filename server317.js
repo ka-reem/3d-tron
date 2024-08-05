@@ -1,8 +1,4 @@
-/*
- * Name:   Kareem Amin
- * SID:    922543151
- * Github: ka-reem
- */
+
 
 const express = require("express");
 const app = express();

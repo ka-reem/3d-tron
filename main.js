@@ -1,8 +1,3 @@
-/*
- * Name:   Kareem Amin
- * SID:    922543151
- * Github: ka-reem
- */
 
 // importing three.js library
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.118/build/three.module.js'; 
@@ -45,6 +40,7 @@ import {GLTFLoader} from 'https://cdn.jsdelivr.net/npm/three@0.118.1/examples/js
 // }
 
 let globalWallsArr = [];
+const mapSize = 1000;
 
 class BasicWorldDemo {
   constructor() {
@@ -84,7 +80,7 @@ class BasicWorldDemo {
 
     // lighting setup 
     let light = new THREE.DirectionalLight(0xFFFFFF, 1.0); // directional light created for shadows
-    light.position.set(20, 100, 10);
+    light.position.set(20, mapSize, 10); // previously 100, assuming its grabbing from mapSize
     light.target.position.set(0, 0, 0);
     light.castShadow = true;            
     light.shadow.bias = -0.001;
@@ -94,10 +90,10 @@ class BasicWorldDemo {
     light.shadow.camera.far = 500.0;
     light.shadow.camera.near = 0.5;
     light.shadow.camera.far = 500.0;
-    light.shadow.camera.left = 100;
-    light.shadow.camera.right = -100;
-    light.shadow.camera.top = 100;
-    light.shadow.camera.bottom = -100;
+    light.shadow.camera.left = mapSize;
+    light.shadow.camera.right = -mapSize;
+    light.shadow.camera.top = mapSize;
+    light.shadow.camera.bottom = -mapSize;
     this._scene.add(light);     
 
     light = new THREE.AmbientLight(0x101010); // make sure everything is lit up
@@ -128,10 +124,11 @@ class BasicWorldDemo {
 
     this._threejs.setClearColor(new THREE.Color(0x090f00)); // background color, dark green
 
-
+    // const mapSize = 1000 // originally 100 on vm - now initialized somewhere above
     const plane = new THREE.Mesh( // render a 3d plane which in this case is our ground
-    
-        new THREE.PlaneGeometry(100, 100, 10, 10),  // (width, height, widthSegments, heightSegments), w/h segments determine subdivisions,
+      
+        // new THREE.PlaneGeometry(100, 100, 10, 10),  // (width, height, widthSegments, heightSegments), w/h segments determine subdivisions,
+        new THREE.PlaneGeometry(mapSize, mapSize, 10, 10),  // (width, height, widthSegments, heightSegments), w/h segments determine subdivisions,
         // this is supposed to make it opaque but gets rid of grid
         // new THREE.MeshStandardMaterial({
         //     color: 0x611919,
@@ -375,7 +372,7 @@ _LoadModel() {
       const collisionZ = Math.abs(pos1.z - pos2.z) < (dims1.z + dims2.z);
 
       // out of bounds collision // bounds for reference: new THREE.PlaneGeometry(100, 100, 10, 10), // 50 in each direction(+/-)
-      if(Math.abs(pos1.x) > 50 || Math.abs(pos1.z) > 50){
+      if(Math.abs(pos1.x) > mapSize / 2 || Math.abs(pos1.z) > mapSize / 2){ // previously 50
         console.log("out of bounds")
         return true;
     }
