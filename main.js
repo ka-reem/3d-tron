@@ -40,7 +40,7 @@ import {GLTFLoader} from 'https://cdn.jsdelivr.net/npm/three@0.118.1/examples/js
 // }
 
 let globalWallsArr = [];
-const mapSize = 500;
+const mapSize = 300;
 let isGameOver = false;
 
 
@@ -600,6 +600,7 @@ _LoadModel() {
 
   
       let targetRotation = 0;
+      let currentRotation = this._camera.rotation.y; // c
   
       switch (this._playerRotation) {
           case 0:
@@ -610,7 +611,8 @@ _LoadModel() {
               targetRotation = -Math.PI / 2; 
               break;
           case 180: // this needs to change from negative to positive depending if you're turning from a 90 deg angle into a 180 or 270 into a 180. the only problem is that if the player goes into 270 -> 180 -> 90, then the camera will rotate 360 deg again as its going from negative to positive 
-              targetRotation = -Math.PI;// -math.pi will do 420 turn between 270 & 180, +math.pi will do samething between 90 & 180. i think lerp function isn't working because to assimilate a positive direction with a negative, it has to turn in the opposing direction
+              // targetRotation = -Math.PI;// -math.pi will do 420 turn between 270 & 180, +math.pi will do samething between 90 & 180. i think lerp function isn't working because to assimilate a positive direction with a negative, it has to turn in the opposing direction
+              targetRotation = Math.PI;// claude says do this
               break;
           case 270:
               targetRotation = Math.PI / 2;
@@ -620,8 +622,15 @@ _LoadModel() {
       }
 
       /*
-
+main.js:627 Uncaught ReferenceError: currentRotation is not defined
+    at BasicWorldDemo._CameraPosition (main.js:627:31)
+    at main.js:790:12
       */
+     // claude fixing my issues
+     
+        // Ensure we always rotate in the shortest direction
+      while (targetRotation - currentRotation > Math.PI) targetRotation -= 2 * Math.PI; // c
+      while (targetRotation - currentRotation < -Math.PI) targetRotation += 2 * Math.PI; // c
   
       // linear interpolation (lerp), smoother transitio
       this._camera.rotation.y = THREE.MathUtils.lerp(this._camera.rotation.y, targetRotation, 0.1);
