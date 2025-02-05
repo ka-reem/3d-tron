@@ -552,7 +552,7 @@ _LoadModel() {
       fpsDisplay.textContent = "FPS: " + fps.toFixed(2);
   
     // Call the next frame
-    console.log("running");
+    // console.log("running");
     
     requestAnimationFrame(updateFPS);
   }
