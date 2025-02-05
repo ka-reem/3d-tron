@@ -1,4 +1,3 @@
-
 // importing three.js library
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.118/build/three.module.js'; 
 // using third person camera that follows player around instead // lets the camera move around via mouse/keyboard
@@ -47,10 +46,14 @@ let isGameOver = false;
 class BasicWorldDemo {
   constructor() {
     this._playerRotation = 0; // keep track of players rotation so its relative to direction its moving 
+    this.fps = null; 
     this._Initialize();
+    this._InitializeFPSCounter(); 
     this._JetWall(); // wall that is created behind the player
     this._playerFrontalPosition = 0; // compare this position with wall
     // this._wallsArr = []; // store all JetWalls positions
+
+    this._InitializeFPSCounter();
   }
 
   _Initialize() {
@@ -528,40 +531,6 @@ _LoadModel() {
   //   this._scene.remove(wall2);
   // }, 1000 / 10); // adjust denominator based off of fps, right now updates every 10fps
 
-  let fps = 0;
-  let lastTime = performance.now();
-  
-  // Create a div element for displaying FPS
-  const fpsDisplay = document.createElement("div");
-  fpsDisplay.style.position = "absolute";
-  fpsDisplay.style.top = "10px";
-  fpsDisplay.style.left = "10px";
-  fpsDisplay.style.color = "pink";
-  fpsDisplay.style.zIndex = "9999";
-  document.body.appendChild(fpsDisplay);
-  
-  function updateFPS() {
-    const currentTime = performance.now();
-    const elapsed = currentTime - lastTime;
-    lastTime = currentTime;
-  
-    fps = 1000 / elapsed;
-  
-    // elapsed will sometimes = 0, outputting infinity 
-    if(elapsed != 0)
-      fpsDisplay.textContent = "FPS: " + fps.toFixed(2);
-  
-    // Call the next frame
-    // console.log("running");
-    
-    requestAnimationFrame(updateFPS);
-  }
-
-  if(1 === Math.floor(Math.random() * 100) + 1)// works but not the way its supposed to
-    updateFPS();
-
-
-
   }
 
   _CameraPosition(){
@@ -788,6 +757,7 @@ _RAF() { // render loop that continously renders the scene
     requestAnimationFrame(() => {
       const speed = 0.8;
       this._threejs.render(this._scene, this._camera);
+      this._UpdateFPS(); 
       this._RAF();
       this._JetWall();
 
@@ -860,6 +830,41 @@ _RAF() { // render loop that continously renders the scene
     // this._player.position.z -= speed; // always move forward;
 
     });
+  }
+
+  _InitializeFPSCounter() {
+    const fpsDisplay = document.createElement("div");
+    fpsDisplay.style.position = "absolute";
+    fpsDisplay.style.top = "10px";
+    fpsDisplay.style.left = "10px";
+    fpsDisplay.style.color = "pink";
+    fpsDisplay.style.zIndex = "9999";
+    fpsDisplay.style.fontFamily = "Arial";
+    fpsDisplay.style.backgroundColor = "rgba(0,0,0,0.5)";
+    fpsDisplay.style.padding = "5px";
+    document.body.appendChild(fpsDisplay);
+
+    this.fps = {
+      display: fpsDisplay,
+      lastTime: performance.now(),
+      frames: 0,
+      lastFpsUpdate: 0
+    };
+  }
+
+  _UpdateFPS() {
+    if (!this.fps) return;
+    
+    const now = performance.now();
+    this.fps.frames++;
+
+    // fps updates every half second
+    if (now >= this.fps.lastFpsUpdate + 500) {
+      const fps = Math.round((this.fps.frames * 1000) / (now - this.fps.lastFpsUpdate));
+      this.fps.display.textContent = `FPS: ${fps}`;
+      this.fps.lastFpsUpdate = now;
+      this.fps.frames = 0;
+    }
   }
 }
 
